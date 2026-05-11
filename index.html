@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>软著代码整理</title>
+    <link rel="stylesheet" href="css/app.css" />
+  </head>
+  <body>
+    <header class="app-header">
+      <h1>软著代码整理</h1>
+      <p class="subtitle">本地读取代码文件，去空行与整行单行注释，输出可粘贴纯文本</p>
+    </header>
+
+    <main class="layout">
+      <section class="panel" aria-labelledby="input-heading">
+        <h2 id="input-heading">输入</h2>
+        <div
+          id="dropzone"
+          class="dropzone"
+          tabindex="0"
+          role="button"
+          aria-label="拖放文件到此处或点击选择文件"
+        >
+          <p>拖放代码文件到此处</p>
+          <p class="hint">或点击选择（可多选）</p>
+        </div>
+        <input id="file-input" type="file" multiple hidden />
+
+        <div class="row">
+          <button type="button" id="btn-clear" class="btn secondary">清空列表</button>
+          <button type="button" id="btn-run" class="btn primary">生成文本</button>
+        </div>
+
+        <fieldset class="fieldset">
+          <legend>合并顺序</legend>
+          <label><input type="radio" name="order" value="selection" checked /> 按选择顺序</label>
+          <label><input type="radio" name="order" value="filename" /> 按文件名排序</label>
+        </fieldset>
+
+        <fieldset class="fieldset">
+          <legend>文件分隔</legend>
+          <label><input type="radio" name="sep" value="none" checked /> 无分隔</label>
+          <label><input type="radio" name="sep" value="blank" /> 空行分隔</label>
+          <label><input type="radio" name="sep" value="filename" /> 以 // 文件名 行分隔</label>
+        </fieldset>
+
+        <label class="checkbox danger">
+          <input type="checkbox" id="opt-trailing" />
+          尝试去掉行尾 <code>//</code> 注释（启发式，复杂字符串可能误判）
+        </label>
+
+        <fieldset class="fieldset">
+          <legend>整行注释识别</legend>
+          <label class="checkbox">
+            <input type="checkbox" id="opt-common-prefix" checked />
+            通用前缀：<code>&lt;!--</code>、<code>//</code>、<code>/*</code>（HTML/XML 与常见代码注释）
+          </label>
+          <label class="label-block" for="extra-prefixes">额外整行前缀（每行一个，或英文逗号分隔）</label>
+          <textarea
+            id="extra-prefixes"
+            class="prefix-input"
+            rows="3"
+            spellcheck="false"
+            placeholder="例如：% 或 REM（批处理）"
+          ></textarea>
+        </fieldset>
+
+        <div id="file-list" class="file-list" aria-live="polite"></div>
+        <p id="warn-unknown" class="warn" hidden></p>
+      </section>
+
+      <section class="panel" aria-labelledby="output-heading">
+        <h2 id="output-heading">输出</h2>
+        <textarea id="output" class="output" readonly rows="24" spellcheck="false" placeholder="点击「生成文本」后结果在此…"></textarea>
+        <div class="row">
+          <button type="button" id="btn-copy" class="btn primary">复制到剪贴板</button>
+        </div>
+        <p id="copy-status" class="status" role="status"></p>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <p>
+        <strong>Word：</strong>粘贴后全选，字体设为 Calibri，字号选「五号」（中文界面下对应 10.5pt）。
+      </p>
+      <p>
+        <strong>复制与模块加载：</strong>请通过本地静态服务打开（例如在项目目录执行
+        <code>npx --yes serve .</code> 后访问提示的地址），不要用
+        <code>file://</code> 直接打开，否则剪贴板与 ES 模块可能受限。
+      </p>
+      <p><strong>编码：</strong>按 UTF-8 读取；非 UTF-8 文件可能乱码，请先在本地转码。</p>
+    </footer>
+
+    <script type="module" src="js/main.js"></script>
+  </body>
+</html>
