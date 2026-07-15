@@ -6,13 +6,15 @@
 
 /** @type {Record<string, string[]>} */
 const PREFIXES = {
-  // C 家族 //
+  // 前端 / C 家族 //
   js: ["//"],
   mjs: ["//"],
   cjs: ["//"],
   ts: ["//"],
   tsx: ["//"],
   jsx: ["//"],
+  vue: ["//"],
+  svelte: ["//"],
   java: ["//"],
   kt: ["//"],
   kts: ["//"],
@@ -33,7 +35,11 @@ const PREFIXES = {
   hxx: ["//"],
   inl: ["//"],
   php: ["//", "#"],
-  // # 家族
+  scss: ["//"],
+  sass: ["//"],
+  less: ["//"],
+  jsonc: ["//"],
+  // # 家族（后端 / 脚本 / 配置）
   py: ["#"],
   pyw: ["#"],
   pyi: ["#"],
@@ -51,6 +57,7 @@ const PREFIXES = {
   // SQL / Lua --
   sql: ["--"],
   lua: ["--"],
+  // HTML/CSS/XML：无独立「单行」前缀，依赖通用 <!-- /* 与①块注释步骤
 };
 
 /**

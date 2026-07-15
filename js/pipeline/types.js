@@ -28,8 +28,11 @@
  * @typedef {Object} PipelineOptions
  * @property {MergeOptions} merge
  * @property {boolean} stripTrailingSlashSlash 是否对支持 // 的语言尝试去掉行尾 //
- * @property {boolean} [includeCommonLineCommentPrefixes] 是否合并通用前缀 &lt;!-- // /*（默认 true）
+ * @property {boolean} [includeCommonLineCommentPrefixes] 是否合并通用前缀 HTML注释、双斜线、C块起始（默认 true）
  * @property {string[]} [extraLineCommentPrefixes] 用户自定义整行前缀
+ * @property {boolean} [stripBlockComments] 是否去掉跨行块注释（默认 true）
+ * @property {boolean} [stripCBlockComments] 是否去掉 C 风格星号块注释（默认 true）
+ * @property {boolean} [stripHtmlBlockComments] 是否去掉 HTML 弯括号注释（默认 true）
  */
 
 export {};

@@ -21,6 +21,7 @@ const fileList = document.getElementById("file-list");
 const warnUnknown = document.getElementById("warn-unknown");
 const copyStatus = document.getElementById("copy-status");
 const optTrailing = document.getElementById("opt-trailing");
+const optBlock = document.getElementById("opt-block");
 const optCommonPrefix = document.getElementById("opt-common-prefix");
 const extraPrefixesInput = document.getElementById("extra-prefixes");
 
@@ -63,19 +64,23 @@ function renderFileList() {
     meta.className = "meta";
     const ext = fileExtFromName(f.name);
     const specific = hasExtSpecificCommentRule(ext);
-    meta.textContent = specific ? formatBytes(f.size) : `${formatBytes(f.size)} · 无专用映射`;
+    meta.textContent = specific ? formatBytes(f.size) : `${formatBytes(f.size)} · 无专用单行前缀`;
     row.appendChild(left);
     row.appendChild(meta);
     fileList.appendChild(row);
   }
 
   const prefixOpts = getLinePrefixUiOptions();
+  const blockOn = optBlock ? optBlock.checked : true;
   const noPrefixes = selectedFiles.filter(
     (f) => mergeLinePrefixes(fileExtFromName(f.name), prefixOpts).length === 0,
   );
-  if (noPrefixes.length) {
+  if (noPrefixes.length && !blockOn) {
     warnUnknown.hidden = false;
-    warnUnknown.textContent = `以下文件当前没有任何整行注释前缀（请开启通用、填写额外前缀，或为该扩展名在 js/rules/commentPrefixesByExt.js 增加映射）：${noPrefixes.map((f) => f.name).join("、")}`;
+    warnUnknown.textContent = `以下文件当前没有任何整行注释前缀，且未开启块注释清理（请开启①/③、填写额外前缀，或为该扩展名在 js/rules/commentPrefixesByExt.js 增加映射）：${noPrefixes.map((f) => f.name).join("、")}`;
+  } else if (noPrefixes.length && blockOn) {
+    warnUnknown.hidden = false;
+    warnUnknown.textContent = `以下文件无专用「整行单行」前缀映射，仍会执行①块注释清理；若还需去掉 # / -- 等单行注释，请开启③通用前缀、填写额外前缀，或补充扩展名映射：${noPrefixes.map((f) => f.name).join("、")}`;
   } else {
     warnUnknown.hidden = true;
     warnUnknown.textContent = "";
@@ -121,6 +126,7 @@ async function run() {
       stripTrailingSlashSlash: Boolean(optTrailing?.checked),
       includeCommonLineCommentPrefixes: prefixOpts.includeCommon,
       extraLineCommentPrefixes: prefixOpts.extraPrefixes,
+      stripBlockComments: optBlock ? optBlock.checked : true,
     });
     output.value = text;
     copyStatus.textContent = "已生成。";
@@ -196,6 +202,11 @@ document.querySelectorAll('input[name="order"], input[name="sep"]').forEach((el)
 });
 
 optTrailing?.addEventListener("change", () => {
+  if (output.value) void run();
+});
+
+optBlock?.addEventListener("change", () => {
+  renderFileList();
   if (output.value) void run();
 });
 

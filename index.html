@@ -9,7 +9,9 @@
   <body>
     <header class="app-header">
       <h1>软著代码整理</h1>
-      <p class="subtitle">本地读取代码文件，去空行与整行单行注释，输出可粘贴纯文本</p>
+      <p class="subtitle">
+        本地读取前后端代码，按固定步骤清理注释与空行，输出可粘贴纯文本
+      </p>
     </header>
 
     <main class="layout">
@@ -23,7 +25,7 @@
           aria-label="拖放文件到此处或点击选择文件"
         >
           <p>拖放代码文件到此处</p>
-          <p class="hint">或点击选择（可多选）</p>
+          <p class="hint">或点击选择（可多选）· 支持 JS/TS/Vue、Java、Python、SQL、HTML/CSS 等</p>
         </div>
         <input id="file-input" type="file" multiple hidden />
 
@@ -45,25 +47,49 @@
           <label><input type="radio" name="sep" value="filename" /> 以 // 文件名 行分隔</label>
         </fieldset>
 
-        <label class="checkbox danger">
-          <input type="checkbox" id="opt-trailing" />
-          尝试去掉行尾 <code>//</code> 注释（启发式，复杂字符串可能误判）
-        </label>
-
         <fieldset class="fieldset">
-          <legend>整行注释识别</legend>
-          <label class="checkbox">
-            <input type="checkbox" id="opt-common-prefix" checked />
-            通用前缀：<code>&lt;!--</code>、<code>//</code>、<code>/*</code>（HTML/XML 与常见代码注释）
-          </label>
-          <label class="label-block" for="extra-prefixes">额外整行前缀（每行一个，或英文逗号分隔）</label>
-          <textarea
-            id="extra-prefixes"
-            class="prefix-input"
-            rows="3"
-            spellcheck="false"
-            placeholder="例如：% 或 REM（批处理）"
-          ></textarea>
+          <legend>注释清理（按下列顺序执行）</legend>
+          <ol class="steps">
+            <li>
+              <label class="checkbox">
+                <input type="checkbox" id="opt-block" checked />
+                <span>
+                  <strong>① 跨行块注释</strong>：去掉
+                  <code>/* … */</code>（含 JSDoc）与
+                  <code>&lt;!-- … --&gt;</code>
+                </span>
+              </label>
+            </li>
+            <li>
+              <p class="step-label"><strong>② 空行</strong>：删除仅含空白的行（始终执行）</p>
+            </li>
+            <li>
+              <label class="checkbox">
+                <input type="checkbox" id="opt-common-prefix" checked />
+                <span>
+                  <strong>③ 整行单行注释 · 通用前缀</strong>：
+                  <code>&lt;!--</code>、<code>//</code>、<code>/*</code>
+                </span>
+              </label>
+              <p class="step-hint">另按扩展名自动叠加：JS/Java 等用 <code>//</code>，Python/Shell 用 <code>#</code>，SQL/Lua 用 <code>--</code></p>
+              <label class="label-block" for="extra-prefixes">额外整行前缀（每行一个，或英文逗号分隔）</label>
+              <textarea
+                id="extra-prefixes"
+                class="prefix-input"
+                rows="2"
+                spellcheck="false"
+                placeholder="例如：% 或 REM（批处理）"
+              ></textarea>
+            </li>
+            <li>
+              <label class="checkbox danger">
+                <input type="checkbox" id="opt-trailing" />
+                <span>
+                  <strong>④ 行尾 <code>//</code></strong>（可选，启发式；复杂字符串可能误判）
+                </span>
+              </label>
+            </li>
+          </ol>
         </fieldset>
 
         <div id="file-list" class="file-list" aria-live="polite"></div>
