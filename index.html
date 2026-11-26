@@ -3,119 +3,255 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="color-scheme" content="light only" />
     <title>软著代码整理</title>
     <link rel="stylesheet" href="css/app.css" />
   </head>
-  <body>
-    <header class="app-header">
-      <h1>软著代码整理</h1>
-      <p class="subtitle">
-        本地读取前后端代码，按固定步骤清理注释与空行，输出可粘贴纯文本
-      </p>
-    </header>
-
-    <main class="layout">
-      <section class="panel" aria-labelledby="input-heading">
-        <h2 id="input-heading">输入</h2>
-        <div
-          id="dropzone"
-          class="dropzone"
-          tabindex="0"
-          role="button"
-          aria-label="拖放文件到此处或点击选择文件"
-        >
-          <p>拖放代码文件到此处</p>
-          <p class="hint">或点击选择（可多选）· 支持 JS/TS/Vue、Java、Python、SQL、HTML/CSS 等</p>
-        </div>
-        <input id="file-input" type="file" multiple hidden />
-
-        <div class="row">
-          <button type="button" id="btn-clear" class="btn secondary">清空列表</button>
-          <button type="button" id="btn-run" class="btn primary">生成文本</button>
+  <body class="theme-light">
+    <div class="app">
+      <aside class="masthead">
+        <div class="masthead-head">
+          <p class="eyebrow"><span class="eyebrow-dot" aria-hidden="true"></span>本地运行 · 不上传</p>
+          <h1>软著代码整理</h1>
+          <p class="lede">选文件、清注释、粘进 Word。<br />一步向下，不左右横跳。</p>
         </div>
 
-        <fieldset class="fieldset">
-          <legend>合并顺序</legend>
-          <label><input type="radio" name="order" value="selection" checked /> 按选择顺序</label>
-          <label><input type="radio" name="order" value="filename" /> 按文件名排序</label>
-        </fieldset>
-
-        <fieldset class="fieldset">
-          <legend>文件分隔</legend>
-          <label><input type="radio" name="sep" value="none" checked /> 无分隔</label>
-          <label><input type="radio" name="sep" value="blank" /> 空行分隔</label>
-          <label><input type="radio" name="sep" value="filename" /> 以 // 文件名 行分隔</label>
-        </fieldset>
-
-        <fieldset class="fieldset">
-          <legend>注释清理（按下列顺序执行）</legend>
-          <ol class="steps">
-            <li>
-              <label class="checkbox">
-                <input type="checkbox" id="opt-block" checked />
-                <span>
-                  <strong>① 跨行块注释</strong>：去掉
-                  <code>/* … */</code>（含 JSDoc）与
-                  <code>&lt;!-- … --&gt;</code>，并清掉残留的 <code>*</code> 续行 / 结尾
-                </span>
-              </label>
+        <nav class="flow-rail" aria-label="流程">
+          <ol class="flow-steps">
+            <li class="flow-step is-active" data-step="1">
+              <span class="flow-dot" aria-hidden="true"></span>
+              <span class="flow-label">选文件</span>
             </li>
-            <li>
-              <p class="step-label"><strong>② 空行</strong>：删除仅含空白的行（始终执行）</p>
+            <li class="flow-step" data-step="2">
+              <span class="flow-dot" aria-hidden="true"></span>
+              <span class="flow-label">整理规则</span>
             </li>
-            <li>
-              <label class="checkbox">
-                <input type="checkbox" id="opt-common-prefix" checked />
-                <span>
-                  <strong>③ 整行单行注释 · 通用前缀</strong>：
-                  <code>&lt;!--</code>、<code>//</code>、<code>/*</code>
-                </span>
-              </label>
-              <p class="step-hint">另按扩展名自动叠加：JS/Java 等用 <code>//</code>，Python/Shell 用 <code>#</code>，SQL/Lua 用 <code>--</code></p>
-              <label class="label-block" for="extra-prefixes">额外整行前缀（每行一个，或英文逗号分隔）</label>
-              <textarea
-                id="extra-prefixes"
-                class="prefix-input"
-                rows="2"
-                spellcheck="false"
-                placeholder="例如：% 或 REM（批处理）"
-              ></textarea>
-            </li>
-            <li>
-              <label class="checkbox danger">
-                <input type="checkbox" id="opt-trailing" />
-                <span>
-                  <strong>④ 行尾 <code>//</code></strong>（可选，启发式；复杂字符串可能误判）
-                </span>
-              </label>
+            <li class="flow-step" data-step="3">
+              <span class="flow-dot" aria-hidden="true"></span>
+              <span class="flow-label">取结果</span>
             </li>
           </ol>
-        </fieldset>
+        </nav>
+      </aside>
 
-        <div id="file-list" class="file-list" aria-live="polite"></div>
-        <p id="warn-unknown" class="warn" hidden></p>
-      </section>
+      <main class="stack">
+        <!-- Step 1 -->
+        <section class="stage" id="stage-files" aria-labelledby="files-heading">
+          <div class="stage-head">
+            <h2 id="files-heading">
+              <span class="stage-no" aria-hidden="true">01</span>选文件
+            </h2>
+            <p class="stage-hint">拖入或点击 · 可多选 · UTF-8</p>
+          </div>
 
-      <section class="panel" aria-labelledby="output-heading">
-        <h2 id="output-heading">输出</h2>
-        <textarea id="output" class="output" readonly rows="24" spellcheck="false" placeholder="点击「生成文本」后结果在此…"></textarea>
-        <div class="row">
-          <button type="button" id="btn-copy" class="btn primary">复制到剪贴板</button>
-        </div>
-        <p id="copy-status" class="status" role="status"></p>
-      </section>
-    </main>
+          <div
+            id="dropzone"
+            class="dropzone"
+            tabindex="0"
+            role="button"
+            aria-label="拖放文件到此处或点击选择文件"
+          >
+            <span class="drop-icon" aria-hidden="true">
+              <svg viewBox="0 0 44 48" width="44" height="48" fill="none" aria-hidden="true">
+                <path
+                  d="M7 3.5h19l9 9v32H7z"
+                  stroke="currentColor"
+                  stroke-width="1.6"
+                  stroke-linejoin="round"
+                />
+                <path d="M26 3.5v9h9" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" />
+                <path
+                  d="M13 22h18M13 28.5h18M13 35h10"
+                  stroke="currentColor"
+                  stroke-width="1.6"
+                  stroke-linecap="round"
+                  opacity=".38"
+                />
+                <circle cx="34" cy="38" r="8.5" fill="var(--accent)" />
+                <path
+                  d="M34 33.6v8.6M30.4 38.6l3.6 3.6 3.6-3.6"
+                  stroke="#fff"
+                  stroke-width="1.7"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
+              </svg>
+            </span>
+            <p class="drop-title">拖放代码文件到此处，或点击选择</p>
+            <p class="drop-sub">JS / TS / Vue · Java / Kotlin · Python · SQL · HTML / CSS …</p>
+          </div>
+          <input id="file-input" type="file" multiple hidden />
+
+          <div id="file-list" class="file-list" aria-live="polite"></div>
+          <p id="warn-unknown" class="inline-msg is-warn" hidden></p>
+
+          <div class="action-row">
+            <button type="button" id="btn-clear" class="btn btn-ghost" disabled>清空</button>
+            <button type="button" id="btn-continue" class="btn btn-primary" disabled>
+              继续整理
+            </button>
+          </div>
+        </section>
+
+        <!-- Step 2 -->
+        <section class="stage is-dimmed" id="stage-rules" aria-labelledby="rules-heading" hidden>
+          <div class="stage-head">
+            <h2 id="rules-heading"><span class="stage-no" aria-hidden="true">02</span>整理规则</h2>
+            <p class="stage-hint">默认够用 · 改动即时重算</p>
+          </div>
+
+          <div class="rule-group">
+            <p class="rule-label">文件顺序</p>
+            <div class="chip-grid" role="group" aria-label="文件顺序">
+              <label class="chip">
+                <input type="radio" name="order" value="selection" checked />
+                <span>按选择顺序</span>
+              </label>
+              <label class="chip">
+                <input type="radio" name="order" value="filename" />
+                <span>按文件名</span>
+              </label>
+            </div>
+          </div>
+
+          <div class="rule-group">
+            <p class="rule-label">文件之间</p>
+            <div class="chip-grid" role="group" aria-label="文件之间的分隔">
+              <label class="chip">
+                <input type="radio" name="sep" value="none" checked />
+                <span>无分隔</span>
+              </label>
+              <label class="chip">
+                <input type="radio" name="sep" value="blank" />
+                <span>空行分隔</span>
+              </label>
+              <label class="chip">
+                <input type="radio" name="sep" value="filename" />
+                <span>// 文件名</span>
+              </label>
+            </div>
+          </div>
+
+          <div class="rule-group">
+            <p class="rule-label">注释清理</p>
+            <div class="toggle-stack" role="group" aria-label="注释清理">
+              <label class="toggle-row">
+                <input type="checkbox" id="opt-block" checked />
+                <span class="switch" aria-hidden="true"></span>
+                <span class="toggle-copy">
+                  <strong>跨行块注释</strong>
+                  <em>/* … */ · JSDoc · &lt;!-- … --&gt;</em>
+                </span>
+              </label>
+              <div class="toggle-row is-locked">
+                <span class="lock-dot" aria-hidden="true"></span>
+                <span class="toggle-copy">
+                  <strong>空行</strong>
+                  <em>始终删除仅空白行</em>
+                </span>
+              </div>
+              <label class="toggle-row">
+                <input type="checkbox" id="opt-common-prefix" checked />
+                <span class="switch" aria-hidden="true"></span>
+                <span class="toggle-copy">
+                  <strong>整行单行注释</strong>
+                  <em>通用 &lt;!-- // /* · 按扩展名叠加 # / --</em>
+                </span>
+              </label>
+              <label class="toggle-row is-caution">
+                <input type="checkbox" id="opt-trailing" />
+                <span class="switch" aria-hidden="true"></span>
+                <span class="toggle-copy">
+                  <strong>行尾 //</strong>
+                  <em>启发式 · 复杂字符串可能误判</em>
+                </span>
+              </label>
+            </div>
+          </div>
+
+          <details class="adv">
+            <summary>额外整行前缀</summary>
+            <label class="sr-only" for="extra-prefixes">额外整行前缀</label>
+            <textarea
+              id="extra-prefixes"
+              class="prefix-input"
+              rows="2"
+              spellcheck="false"
+              placeholder="每行一个，或逗号分隔 · 如 %、REM"
+            ></textarea>
+            <p id="prefix-hint" class="inline-msg" hidden></p>
+          </details>
+        </section>
+
+        <!-- Step 3 -->
+        <section class="stage is-dimmed" id="stage-result" aria-labelledby="result-heading" hidden>
+          <div class="stage-head">
+            <h2 id="result-heading"><span class="stage-no" aria-hidden="true">03</span>取结果</h2>
+            <p class="stage-hint">粘贴 Word 后 · Calibri 五号 10.5pt</p>
+          </div>
+
+          <div id="stats" class="stats" hidden>
+            <div class="stat">
+              <span class="stat-label">文件</span>
+              <span class="stat-value mono" id="stat-files">0</span>
+            </div>
+            <div class="stat">
+              <span class="stat-label">有效行</span>
+              <span class="stat-value mono" id="stat-lines">0</span>
+            </div>
+            <div class="stat">
+              <span class="stat-label">约合页</span>
+              <span class="stat-value mono" id="stat-pages">0</span>
+            </div>
+            <div class="stat">
+              <span class="stat-label">软著参考</span>
+              <span class="stat-value mono" id="stat-soft">50×60</span>
+            </div>
+          </div>
+          <p id="stat-note" class="inline-msg" hidden></p>
+
+          <div id="skeleton" class="skeleton" hidden aria-hidden="true">
+            <div class="sk-stats">
+              <span class="sk-block sk-stat shimmer"></span>
+              <span class="sk-block sk-stat shimmer"></span>
+              <span class="sk-block sk-stat shimmer"></span>
+              <span class="sk-block sk-stat shimmer"></span>
+            </div>
+            <div class="sk-lines">
+              <span class="sk-block sk-line shimmer" style="--w: 92%"></span>
+              <span class="sk-block sk-line shimmer" style="--w: 78%"></span>
+              <span class="sk-block sk-line shimmer" style="--w: 86%"></span>
+              <span class="sk-block sk-line shimmer" style="--w: 64%"></span>
+              <span class="sk-block sk-line shimmer" style="--w: 88%"></span>
+              <span class="sk-block sk-line shimmer" style="--w: 71%"></span>
+              <span class="sk-block sk-line shimmer" style="--w: 95%"></span>
+              <span class="sk-block sk-line shimmer" style="--w: 58%"></span>
+            </div>
+          </div>
+
+          <textarea
+            id="output"
+            class="output mono"
+            readonly
+            rows="18"
+            spellcheck="false"
+            placeholder="整理完成后，纯文本会出现在这里…"
+          ></textarea>
+
+          <div class="action-row">
+            <button type="button" id="btn-download" class="btn btn-ghost" disabled>下载 .txt</button>
+            <button type="button" id="btn-copy" class="btn btn-primary" disabled>复制到剪贴板</button>
+          </div>
+          <p id="copy-status" class="inline-msg" role="status"></p>
+        </section>
+      </main>
+    </div>
 
     <footer class="footer">
-      <p>
-        <strong>Word：</strong>粘贴后全选，字体设为 Calibri，字号选「五号」（中文界面下对应 10.5pt）。
-      </p>
-      <p>
-        <strong>复制与模块加载：</strong>请通过本地静态服务打开（例如在项目目录执行
-        <code>npx --yes serve .</code> 后访问提示的地址），不要用
-        <code>file://</code> 直接打开，否则剪贴板与 ES 模块可能受限。
-      </p>
-      <p><strong>编码：</strong>按 UTF-8 读取；非 UTF-8 文件可能乱码，请先在本地转码。</p>
+      <div class="footer-inner">
+        <p>清洗全程在浏览器完成，代码不外传。</p>
+        <p>页眉页码与 60 页截取需在 Word 中完成。</p>
+      </div>
     </footer>
 
     <script type="module" src="js/main.js"></script>
